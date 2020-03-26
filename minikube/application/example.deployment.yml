@@ -1,0 +1,32 @@
+---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: exampleservice
+    spec:
+      selector:
+        app: myapp
+      ports:
+        - protocol: "TCP"
+          port: 8081
+          targetPort: 8080
+          nodePort: 30002
+      type: LoadBalancer
+    
+    
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: myappdeployment
+spec:
+    replicas: 5
+    template:
+        metadata:
+            labels:
+                app: myapp
+        spec:
+            containers:
+            - name: myapp
+              image: jamesquigley/exampleapp:v1.0.0
