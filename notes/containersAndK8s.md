@@ -36,7 +36,7 @@
 - Container host. , the actual machine were the container runs.
 
 ### How to install from scratch
-- I've only used Docker. Here are the instructions on how to install docker:
+- I've only used Docker. Here are the instructions on how to install docker: https://docs.docker.com/docker-for-mac/install/
 
 
 ## Container VS. VM
