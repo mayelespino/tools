@@ -12,9 +12,9 @@
     - Image push/pull
     - contaner run/stop
   - The definition file, which describes how to build the image.
+- Containers are ephimeral When the container is destroyed the state is gone. To maintain state, disk space must be mounted to save state or write to a service(like a db).
 - There are several impementations: Docker, rocket (rkt), lxc, RailCar and others.
 ### The components
-- Containers are ephimeral When the container is destroyed the state is gone. To maintain state, disk space must be mounted to save state or write to a service(like a db).
 - A container image: A container is packaged with all of it's dependencies. Nothing is installed in the container, the image binary runs on the container.
   - Images have layers organized in a heriarchy. Each layer is a snapshot. 
   - The can be an Image cache on the container host/manager which is shared across containers.
