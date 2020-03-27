@@ -25,30 +25,23 @@
 # Graphql
 - GraphQL: The Documentary: https://youtu.be/783ccP__No8
 
-=== Cointainer , VMS,  orchestration
-Use full videos:
-https://youtu.be/EnJ7qX9fkcU
-https://www.youtube.com/watch?v=JSLpG_spOBM
-https://youtu.be/VqLcWftIaQI
-https://www.youtube.com/watch?v=0qotVMX-J5s
-https://youtu.be/0qotVMX-J5s
-https://youtu.be/kBF6Bvth0zw
-https://youtu.be/aSrqRSk43lY
-https://youtu.be/1xo-0gCVhTU
-
-puts it all together along with demo:
-https://youtu.be/1xo-0gCVhTU
-
-------------
-Learn more about Kubernetes: https://ibm.biz/kubernetes-guide
-Check out the IBM Cloud Kubernetes Service: https://ibm.biz/kube-containers-service  
-
-
-Not so useful:
-https://www.youtube.com/watch?v=PoiXuVnSxfE
-
-=== cgroups
+# cgroups
 https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/ch01
 
-=== Minikube
+# Minikube
 https://kubernetes.io/zh/docs/tutorials/kubernetes-basics/create-cluster/cluster-intro/
+
+# API gateway
+- What is an API Gateway? : https://youtu.be/vHQqQBYJtLI
+
+# Multytenancy
+- Multitenancy Explained: https://youtu.be/60ccSmOxpMw
+
+# Cloud native
+- What is Cloud Native?: https://youtu.be/fp9_ubiKqFU
+
+# PaaS
+- PaaS Explained: https://youtu.be/QAbqJzd0PEE
+
+# GPU
+- GPUs: Explained: https://youtu.be/LfdK-v0SbGI
