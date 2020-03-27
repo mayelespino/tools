@@ -34,8 +34,7 @@
   - BlkIO cgroup for measuring & limiting amount of blckIO by group.
   - ``` /etc/cgconfig.conf ```
 - Container host. , the actual machine were the container runs.
-- Container registry: They are very similar to git repos.
-  - When pulling or pushing images only the diffs are pulled/pushed.
+
 ### How to install from scratch
 - I've only used Docker. Here are the instructions on how to install docker:
 
@@ -71,21 +70,21 @@
   - Desired state: The number of nodes needed to be running. What image version to run. 
   - Rolling deployments 
   - Rolling back a deployment
-- Service Discovery
-  - Services: The way access the applications.
-  - service registry/discovery: When new apps are broght up they are adverticed via service. When nodes are created they are added to the service.
-  - KubeDNS makes it easy to have services find each other by name.
-  - A service can be : LB, Node port, Cluster IP and others.
 - Container Management:
   - Maintain desired state: if nodes die, a new one takes it's place.
   - Scheduling: The scheduler is used to achives the desired state. It creates or deletes pods.
-- Monitor performance and health of the containers.
 - Scaling: The way to make the best use of the resources.
   - Scale up
   - Scale down
   - Can be done manually or automatically
   - Based on user load
+- Service Discovery
+  - Services: The way access the applications.
+  - service registry/discovery: When new apps are broght up they are adverticed via service. When nodes are created they are added to the service.
+  - KubeDNS makes it easy to have services find each other by name.
+  - A service can be : LB, Node port, Cluster IP and others.
 - Monitoring/Insight: To find out what is going on with the application.
+  - Monitor performance and health of the containers.
 ### Components (Kubernetes)
 #### On Master and Worker nodes
 - Deamon (Kubelet)
