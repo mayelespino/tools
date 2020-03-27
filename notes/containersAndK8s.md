@@ -132,6 +132,10 @@
 - Containerization Explained: https://youtu.be/0qotVMX-J5s
 - Namespaces in linux: https://blog.scottlowe.org/2013/09/04/introducing-linux-network-namespaces/
 - Cgroups: https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6
+- Building a container from scratch in Go: https://youtu.be/Utf-A4rODH8
+  - Liz's git hub: https://github.com/lizrice/containers-from-scratch/blob/master/main.go
+  - Containers from scratch: The sequel - Liz Rice: https://youtu.be/_TsSmSu57Zo
+
 
 ## Container Orchestration 
 - Container Orchestration Explained: https://youtu.be/kBF6Bvth0zw

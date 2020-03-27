@@ -45,3 +45,10 @@ https://kubernetes.io/zh/docs/tutorials/kubernetes-basics/create-cluster/cluster
 
 # GPU
 - GPUs: Explained: https://youtu.be/LfdK-v0SbGI
+
+# Knative
+- Built on top of kubernetes, it is an environment that includeds:
+  - building on the cloud
+  - serve
+  - and events
+- What is Knative?: https://youtu.be/69OfdJ5BIzs
