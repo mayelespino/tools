@@ -1,0 +1,9 @@
+Puppet::Type.newtype(:thing) do
+  # ...
+  newparam(:name) do
+    desc "The name of the thing"
+    isnamevar
+    # ...
+  end
+  # ...
+end

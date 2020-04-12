@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   <title>Puppet Training</title>
+   
+   
+
+<style>
+html, body { margin: 0; padding: 0; }
+
+body { font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; }
+
+a:link, a:visited { color: black; }
+
+h1 { font-size: 30pt;  }
+h2 { font-size: 28pt;  }
+h3 { font-size: 25pt;  }
+p, li, dt, dd, td, th { font-size: 18pt; }
+
+pre { font-size: 14pt;  }
+pre.small { font-size: 11pt; }
+
+pre.code {
+        background-color: azure;
+        padding: 5px;
+      }
+     
+ul { list-style-type: square; }    
+   
+.center { text-align: center; }   
+     
+.slide { page-break-after: always;
+         min-height: 100mm;
+         padding: 40px;
+         
+         border: 1px dotted black;
+
+/*      
+  background: -moz-linear-gradient( top, maroon, red);
+*/
+       }
+
+
+
+/*
+for princexml (CSS3 paged media support)
+@page { size: A4 landscape }
+*/
+</style>
+
+</head>
+<body>
+
+<div class="presentation">
+
+<div class='slide '>
+<h1>Puppet Developers Course</h1><div style="text-align: center;">
+<p><br/>
+<img src="images/puppetlabs.png" /></p>
+</div>
+
+</div>
+<div class='slide '>
+<h1>Puppet Developers Course</h1><h3>What we&#8217;ll cover:</h3>
+<ul>
+	<li>An introduction (or refresher) to the Ruby programming language</li>
+	<li>An expanded look at developing your own facts</li>
+	<li>An expanded look at developing your own functions</li>
+	<li>Writing unit tests using rspec</li>
+	<li>Writing custom report handlers</li>
+	<li>Puppet Ruby DSL</li>
+	<li>Developing types and providers</li>
+	<li>The indirector</li>
+	<li>Puppet Faces</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Puppet Developers Course</h1><h3>Course Goals</h3>
+<ul>
+	<li>Basic knowledge of the Ruby language and where to look for more resources</li>
+	<li>Understand when and how to develop facts, functions, types, and providers</li>
+	<li>Cement knowledge of how to structure a module</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Puppet Developers Course</h1><h3>Introductions &amp; Expectations</h3>
+<p>Who are you, where do you work, and what would you like to get out of
+the course?</p>
+<p>What&#8217;s your experience and comfort level with Ruby?</p>
+
+</div>
+<div class='slide '>
+<h1>Puppet Enterprise</h1><h3>Pre-Installation:</h3>
+<p>Before we go any farther, lets assign a hostname to our VMs (feel free to chose
+anything); make it persist across reboots:</p>
+<pre class='code'>
+root@localhost # hostname training.puppetlabs.lan
+root@localhost # bash
+root@training # vi /etc/sysconfig/network
+</pre>
+<p>Edit <code>/etc/hosts</code> to include an entry for your ip, fqdn and shortname.</p>
+<pre class='code'>
+root@training # vi /etc/hosts
+</pre>
+<p>Now we are ready to move on to installation.</p>
+
+</div>
+<div class='slide '>
+<h1>Puppet Enterprise</h1><h3>Installation:</h3>
+<ul>
+	<li>Perform a dry-run install with <code>-s</code> to get a feel for the options</li>
+	<li>Create an answer seed-file in the process</li>
+	<li>First answer for installing Puppet Master should be &#8216;yes&#8217;</li>
+	<li>For the other answers, the default answers are OK</li>
+</ul>
+<pre class='code'>
+root@training # cd ~/puppet-enterprise/
+root@training # ./puppet-enterprise-installer \
+  -s answers.txt
+</pre>
+<ul>
+	<li>Perform a live install using your new answer seed-file:</li>
+</ul>
+<pre class='code'>
+root@training # ./puppet-enterprise-installer \
+  -a answers.txt
+</pre>
+<p>(Optionally, you may omit all flags to be prompted for configuration questions)</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Executables</h1><h2>Executables: ruby</h2>
+<p>The <code>ruby</code> executable is how Ruby programs are generally run:</p>
+<pre class='code'>
+$ ruby script.rb
+</pre>
+<p>The executable supports a large number of commandline options, the
+most important of which are:</p>
+<dl>
+  <dt><code>-e CODE</code></dt>
+  <dd>Execute Ruby code given as an argument</dd>
+  <dt><code>-r LIBRARY</code></dt>
+  <dd>Require a library on startup</dd>
+  <dt><code>-I PATH</code></dt>
+  <dd>Add a path to <code>$LOAD_PATH</code> before startup</dd>
+  <dt><code>-c</code></dt>
+  <dd>Just check the syntax of the file given as an argument</dd>
+</dl>
+
+</div>
+<div class='slide '>
+<h1>Ruby Executables</h1><h2>Executables: ruby</h2>
+<p>Inside a Ruby process, a few special constants are very important:</p>
+<dl>
+  <dt><code>ARGV</code></dt>
+  <dd>The options passed to the executable (not including the filename
+  being executed)</dd>
+  <dt><code>ENV</code></dt>
+  <dd>The current environment variables.</dd>
+</dl>
+
+</div>
+<div class='slide '>
+<h1>Ruby Executables</h1><h2>Executables: irb</h2>
+<p>&#8220;IRB&#8221; is interactive Ruby, a read-eval-print-loop (REPL).</p>
+<p>Many of the examples in the class will be shown as sample <code>irb</code>
+sessions; they look like the following:</p>
+<pre class='code'>
+irb(main):001:0&gt; 1 + 1
+ =&gt; 2
+</pre>
+<p>Note the <code>irb(main):001:0&gt;</code> and <code>=&gt;</code> lines; they indicate code input and the
+results of evaluation, respectively.</p>
+<p>To get a condensed prompt, you can invoke <code>irb</code> like this:</p>
+<pre class='code'>
+$ irb --simple-prompt
+</pre>
+<p>NOTE: <code>irb</code> is usually distributed with Ruby but, depending on your
+package management system, you may need to install it separately.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Executables</h1><h2>Executables: ri</h2>
+<p>&#8220;ri&#8221; is a tool used to output Ruby documentation.  It is most
+frequently used for core and standard library objects.</p>
+<pre class='code'>
+
+------------------------------------------------------ String#capitalize
+     str.capitalize   =&gt; new_str
+
+     From Ruby 1.8
+------------------------------------------------------------------------
+     Returns a copy of _str_ with the first character converted to
+     uppercase and the remainder to lowercase.
+
+        "hello".capitalize    #=&gt; "Hello"
+        "HELLO".capitalize    #=&gt; "Hello"
+        "123ABC".capitalize   #=&gt; "123abc"
+</pre>
+<p>NOTE: <code>ri</code> is usually distributed with Ruby but, depending on your
+package management system, you may need to install it separately.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Executables</h1><h2>Executables: gem</h2>
+<p>Most external Ruby packages can be installed with RubyGems.</p>
+<p>Commonly used commands:</p>
+<ul>
+	<li>list currently installed gems:
+<pre class='code'>
+&gt; gem list
+</pre></li>
+	<li>search for remote gems:
+<pre class='code'>
+&gt; gem search <code>--remote</code> rspec
+</pre></li>
+	<li>install:
+<pre class='code'>
+&gt; gem install rspec
+</pre></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Ruby Process</h1><h2>Exiting a Ruby process</h2>
+<p>Use exit (for exit code <code>0</code>)</p>
+<pre class='code'>
+&gt;&gt; exit
+$
+</pre>
+<p>Provide a different exit code:</p>
+<pre class='code'>
+&gt;&gt; exit 1
+$ echo $?
+0
+$
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby String</h1><h2>Strings</h2>
+<pre class='code'>
+&gt;&gt; "this is a string"
+&gt;&gt; 'this is also a string'
+</pre>
+<p>Strings support a large number of methods out-of-the-box:</p>
+<pre class='code'>
+$ ri String
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby String</h1><h2>String interpolation</h2>
+<p>String interpolation is done with <code>#{}</code>:</p>
+<pre class='code'>
+&gt;&gt; name = "Puppet"
+&gt;&gt; puts "#{name} is awesome"
+Puppet is awesome
+</pre>
+<p>Single-quoted strings do not interpolate:</p>
+<pre class='code'>
+&gt;&gt; name = "Puppet"
+&gt;&gt; puts '#{name} is awesome'
+#{name} is awesome
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby String</h1><h2>Methods</h2>
+<p>Some useful methods:</p>
+<pre class='code'>
+&gt;&gt; "my_string".gsub('my', 'your')
+=&gt; "your_string"
+</pre>
+
+<pre class='code'>
+&gt;&gt; "Puppet is aWesome".downcase
+=&gt; "puppet is awesome"
+</pre>
+
+<pre class='code'>
+&gt;&gt; "Puppet is awesome\n".chomp
+=&gt; "Puppet is awesome"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby String</h1><h2>Methods</h2>
+<pre class='code'>
+&gt;&gt; "my string".methods - Object.methods
+=&gt; ["%", "rindex", "map", "&lt;&lt;", "split", "any?", "sort", "strip", "size",
+"downcase", "min", "gsub!", "count", "succ!", "downcase!", "intern", ...
+</pre>
+<p>To search through the list of methods, much like the command line tool &#8216;grep&#8217; you can do:</p>
+<pre class='code'>
+&gt;&gt; ("my string".methods - Object.methods).grep /sub/
+=&gt; ["gsub!", "sub", "gsub", "sub!"]
+</pre>
+<p>Quick-hint magic of ruby!</p>
+
+</div>
+<div class='slide '>
+<h1>Regular Expressions</h1><h2>Regular Expressions</h2>
+<p>Ruby supports the full range of Perl regular expressions through its
+<code>Regexp</code> class and <code>//</code> literal.</p>
+<pre class='code'>
+&gt;&gt; /This is a Regexp/.class
+=&gt; Regexp
+</pre>
+<p>Matching is usually done via the <code>String#=~</code> method:</p>
+<pre class='code'>
+&gt;&gt; "Puppet is awesome" =~ /awesome/
+=&gt; 10
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Regular Expressions</h1><h2>Regexp Groups</h2>
+<p>Regular expression grouping is done via parentheses and matches set
+<code>$N</code> (as in Perl).</p>
+<pre class='code'>
+&gt;&gt; "Puppet is awesome" =~ /^(\w+) is awesome/
+=&gt; 0
+&gt;&gt; $1
+=&gt; "Puppet"
+</pre>
+<p>You can also get a <code>MatchData</code> instance with all the information about
+the match:</p>
+<pre class='code'>
+&gt;&gt; match = "Puppet is awesome!!!".match(/^(\S+) is awesome/)
+=&gt; #&lt;MatchData "Puppet is awesome" 1:"Puppet"&gt;
+&gt;&gt; match[0]
+=&gt; "Puppet is awesome"
+&gt;&gt; match[1]
+=&gt; "Puppet"
+&gt;&gt; match.post_match
+=&gt; "!!!"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Regular Expressions</h1><h2>Regexp interpolation</h2>
+<p>Interpolation is the same as with strings.</p>
+<pre class='code'>
+/This matches #{some_variable}/
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Numerics</h1><h2>Numerics</h2>
+<p>Ruby numerics are usually represented by the classes <code>Integer</code> and <code>Float</code></p>
+<p>Operators called on numerics are actually methods; the following are equivalent:</p>
+<pre class='code'>
+&gt;&gt; 2 * 3.0
+=&gt; 6.0
+&gt;&gt; 2.*(3.0)
+=&gt; 6.0
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Methods</h1><h2>Methods</h2>
+<p>Ruby methods, similar to functions and subroutines in other languages,
+enable you to reuse code.</p>
+<p>Methods are defined using the <code>def</code> keyword, have a name, and
+an arbitrary number of parameters.  The <code>return</code> keyword is optional 
+&#8212; the value of the last expression in a
+method is automatically returned by default.</p>
+<pre class='code'>
+&gt;&gt; def multiply(x, y)
+&gt;&gt;   x * y
+&gt;&gt; end
+</pre>
+<p>You can usually invoke a method with or without parentheses; it&#8217;s generally
+recommended to use parentheses if there are more than one or two arguments.</p>
+<pre class='code'>
+&gt;&gt; multiply 1, 2
+=&gt; 2
+&gt;&gt; multiply(3, 4)
+=&gt; 12
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Methods</h1><h2>Methods</h2>
+<p>You can accept a variable number of arguments by prefixing the last argument with <code>*</code> (the splat operator):</p>
+<pre class='code'>
+&gt;&gt; def number_of_args(*numbers)
+&gt;&gt;   numbers.length
+&gt;&gt; end
+&gt;&gt; number_of_args(3, 4, 5)
+=&gt; 3
+</pre>
+<p>You can also set defaults for the last arguments:</p>
+<pre class='code'>
+&gt;&gt; def multiply(x, y=10)
+&gt;&gt;   x * y
+&gt;&gt; end
+&gt;&gt; multiply(30)
+=&gt; 300
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Methods</h1><h2>Exercise:</h2>
+<p>Write a method <code>filter_password</code> that censors a password from provided text.</p>
+<ul>
+	<li>Arguments
+	<ul>
+		<li>text that may contain the password</li>
+		<li>password</li>
+	</ul></li>
+</ul>
+<ul>
+	<li>Returns
+	<ul>
+		<li>text with any occurrences of the password replaced with one &#8216;x&#8217; per character</li>
+	</ul></li>
+</ul>
+<p>given arguments: &#8216;my password is fooword&#8217;, &#8216;fooword&#8217;
+it should return &#8216;my password is xxxxxxx&#8217; like so:</p>
+<pre class='code'>
+&gt;&gt; filter_password('my password is fooword', 'fooword')
+=&gt; "my password is xxxxxxx"
+</pre>
+<p>HINT: Try <code>"string" * 5</code> in irb and see what it does. Try you using the tool <code>ri</code> or <code>"string".methods</code> to see what methods are available for a string.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Variables and Scope</h1><h2>Variables and Scope</h2>
+<p>Ruby contains the following types of variables.</p>
+<pre class='code'>
+varname   # Normal variable
+@varname  # Instance variable
+$varname  # Global variable - should almost never be used
+Varname   # Constant (usually only used for Classes/Modules)
+VARNAME   # Constant
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Variables and Scope</h1><h2>Variables and Scope</h2>
+<p>What is the value of <code>x</code>?</p>
+<pre class='code'>
+&gt;&gt; x = 3
+&gt;&gt; def set_x(value)
+&gt;&gt;   x = value
+&gt;&gt; end
+&gt;&gt; set_x(2)
+&gt;&gt; puts x
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Array</h1><h2>Array</h2>
+<p>Arrays are lists of arbitrary elements.</p>
+<pre class='code'>
+&gt;&gt; names = ['joe', 'jack', 'jim']
+&gt;&gt; names[1]
+=&gt; "jack"
+</pre>
+<p>They support a wide range of operations, including:</p>
+<pre class='code'>
+&gt;&gt; names.push 'james'
+=&gt; ['joe', 'jack', 'jim', 'james']
+&gt;&gt; names.unshift 'jill'
+=&gt; ['jill', 'joe', 'jack', 'jim', 'james']
+&gt;&gt; names.pop
+=&gt; "james"
+&gt;&gt; names.shift
+=&gt; "jill"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Hash</h1><h2>Hash</h2>
+<p>Hashes are sets of key/value pairs (similar to HashMap
+and Dictionary types in other languages).</p>
+<p>They can be created using the Hash literal, <code>{}</code>:
+<pre class='code'>
+&gt;&gt; person = {&#8217;name&#8217; =&gt; &#8217;joe&#8217;}
+</pre></p>
+<p>You can &#8220;index&#8221; into a hash by a key to retrieve or set values:</p>
+<pre class='code'>
+&gt;&gt; person['name']
+=&gt; "joe"
+&gt;&gt; person['name'] = 'jim'
+&gt;&gt; person
+=&gt; {"name" =&gt; "jim"}
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Truth</h1><h2>&#8220;Truthiness&#8221;</h2>
+<p>In conditionals, everything evaluates to <code>true</code> except:</p>
+<ul>
+	<li><code>false</code></li>
+	<li><code>nil</code></li>
+</ul>
+<p>Notice <code>0</code> isn&#8217;t on that list.</p>
+<pre class='code'>
+&gt;&gt; if 0
+&gt;&gt;   puts "Yes!"
+&gt;&gt; else
+&gt;&gt;   puts "No!"
+&gt;&gt; end
+Yes!
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Conditionals</h1><h2>Conditionals</h2>
+<h2>If</h2>
+<pre class='code'>
+if some_condition
+  do_something
+elsif some_other_condition
+  do_some_other_thing
+else
+  do_something_else
+end
+</pre>
+<h2>Unless</h2>
+<pre class='code'>
+unless some_condition
+  do_something
+else
+  so_something_else
+end
+</pre>
+<p>Note: Many Rubyists consider <code>unless</code> confusing (especially when used
+in conjunction with <code>else</code>) and use <code>if !</code> instead.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Conditionals</h1><h2>Conditionals</h2>
+<h2>Case</h2>
+<p>Case statements allow you to test multiple conditions quickly and
+flexibly:</p>
+<pre class='code'>
+name = "Joey"
+
+case name
+when "John"
+  puts "Go away, John."
+when "Joseph", /^joey?/i
+  puts "Hello, Joe!"
+else
+  puts "Umm, hi."
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Loops</h1><h2>Loops</h2>
+<p>The simplest loop in Ruby is <code>loop</code>.  Ruby will loop forever until a
+<code>break</code> (or <code>return</code>, or <code>throw</code>) is encountered:</p>
+<pre class='code'>
+loop do
+  # loops forever
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Loops</h1><h2>Loops: While</h2>
+<p>This will loop while a condition is met:</p>
+<pre class='code'>
+while some_condition
+  # loops until some_condition
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Iteration of arrays</h2>
+<p>Enumerable classes support iterating over members via the <code>each</code> method, which accepts a block.</p>
+<pre class='code'>
+&gt;&gt; people = ['joe', 'jim', 'john']
+&gt;&gt; people.each do |person|
+&gt;&gt;   puts person
+&gt;&gt; end
+joe
+jim
+john
+=&gt; ["joe", "jim", "john"]
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Blocks</h2>
+<p>Blocks are an Object representation of code.</p>
+<p>They can be passed to any method, which can invoke them with the <code>yield</code> keyword.</p>
+<p>A block being passed to a method is indicated with <code>do</code> and <code>end</code></p>
+<p>Arguments can be <code>yielded</code> to a block.</p>
+<pre class='code'>
+people.each do |person|
+  puts person
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Implementing array iteration with blocks</h2>
+<pre class='code'>
+class Array
+  def each(&amp;block) 
+    current_index = 0
+    while current_index &lt; self.length 
+      yield self[current_index]
+      current_index+=1
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Collection of arrays</h2>
+<p>Iterates over the elements of the array, returns a new array consisting of the values returned from all of the yielded blocks.</p>
+<pre class='code'>
+&gt;&gt; proper_nouns = ['joe', 'jim', 'john'].collect do |person|
+&gt;&gt; person.capitalize
+&gt;&gt; end
+=&gt; ["Joe", "Jim", "John"]
+</pre>
+<p>&#8216;collect&#8217; is also known as &#8216;map&#8217;</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Selection of array elements</h2>
+<p>Array#select iterates over the elements of the array, returns a new array consisting of the elements whose associated blocks returned true.</p>
+<pre class='code'>
+&gt;&gt; natural_numbers = [1,2,3,-1].select do |int|
+&gt;&gt;   int &gt; 0
+&gt;&gt; end
+=&gt; [1, 2, 3]
+</pre>
+<p>Array#reject, rejects elements whose block returns true.</p>
+<pre class='code'>
+&gt;&gt; negatives = [1,2,3,-1].reject do |int|
+&gt;&gt;   int &gt; -1
+&gt;&gt; end
+=&gt; [-1]
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Iteration of hashes</h2>
+<p>When iterating over <code>Hash</code> keys and values, keys and values are
+yielded separately:</p>
+<pre class='code'>
+&gt;&gt; modes = {'/path/to/foo' =&gt; 655, '/path/to/bar' =&gt; 700}
+&gt;&gt; modes.each do |key, value|
+&gt;&gt;   puts "The mode for #{key} is #{value}"
+&gt;&gt; end
+The mode for /path/to/foo is 655
+The mode for /path/to/bar is 700
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Enumerable</h1><h2>Reduction of members</h2>
+<p>Enumerable classes support the reduction of its members to a single value via <code>inject</code>.  This is similar to <code>reduce</code>, <code>fold</code>, <code>accumulate</code>, and <code>compress</code> from various other languages.</p>
+<pre class='code'>
+&gt;&gt; people = [1, 2, 3]
+&gt;&gt; people.inject(0) do |sum, n|
+&gt;&gt;   puts "#{sum}:#{n}" # debugging to show us how its calculated
+&gt;&gt;   sum+n
+&gt;&gt; end
+6
+</pre>
+<p>&#8216;inject&#8217; is also known as &#8216;reduce&#8217; or &#8216;fold&#8217;</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Classes</h1><h2>Objects:</h2>
+<p>Everything in Ruby is an object.</p>
+<p>Objects group data and behaviors.</p>
+<p>Objects are instances of classes.</p>
+<pre class='code'>
+&gt;&gt; class PuppetUser
+&gt;&gt; end
+&gt;&gt; p = PuppetUser.new
+=&gt; #&lt;PuppetUser:0x100318f48&gt;
+&gt;&gt; p.class
+=&gt; PuppetUser
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Classes</h1><h2>Using Classes</h2>
+<p>Objects have attributes and methods.</p>
+<p>The <code>initialize</code> method is called implicitly during instantiation and accepts arguments.</p>
+<pre class='code'>
+class PuppetUser
+  def initialize(name)
+    @name = name
+  end
+end
+</pre>
+<p>Classes are instantiated with the <code>new</code> method.</p>
+<pre class='code'>
+&gt;&gt; me = PuppetUser.new('Awesomo-Jenkins')
+=&gt; #&lt;PuppetUser:0x100141828 @name="Awesomo-Jenkins"&gt;
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Classes</h1><h2>Attributes</h2>
+<p>Instance variables frequently need setters and getters.</p>
+<pre class='code'>
+class PuppetUser
+  def initialize(name)
+    @name = name
+  end
+  def name
+    @name
+  end
+  def name=(name)
+    @name = name
+  end
+end
+</pre>
+<p>Explicitly creating all of these methods is annoying&#8230;</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Classes</h1><h2>Attributes</h2>
+<ul>
+	<li>attr_writer</li>
+	<li>attr_reader</li>
+	<li>attr_accessor</li>
+</ul>
+<p>These methods automatically create setters and getters:</p>
+<pre class='code'>
+class PuppetUser
+  attr_accessor :name
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Modules</h1><h2>Modules</h2>
+<p>Modules can be used to share related behavior.</p>
+<pre class='code'>
+module BeerDrinker
+  def cheer
+    'woo-hoo'
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Modules</h1><h2>Modules</h2>
+<p>Modules can be <code>mixed-in</code> to an Object with the <code>include</code> function.</p>
+<pre class='code'>
+class PuppetUser
+  include BeerDrinker
+end
+</pre>
+<p>Since all PuppetUsers are also BeerDrinkers, all of the BeerDrinker methods can now be invoked on PuppetUsers.</p>
+<pre class='code'>
+&gt;&gt; PuppetUser.new('dan').cheer
+=&gt; "woo-hoo" 
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Common Ruby Tasks: Reading Files</h2>
+<h3>Quickly</h3>
+<p>As a single string:</p>
+<pre class='code'>
+text = File.read('/path/to/filename')
+</pre>
+<p>Or as an array of strings:</p>
+<pre class='code'>
+lines = File.readlines('/path/to/filename')
+</pre>
+<h3>Using a block</h3>
+<pre class='code'>
+File.open('/path/to/filename') do |f|
+  # You can call "f.read" or "f.readlines" here
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Exercise</h2>
+<h3>Reading Files</h3>
+<p>Given a list of filenames as arguments from the
+commandline, output those files to standard output.</p>
+<ol>
+	<li>Output the files last-to-first (LIFO)</li>
+	<li>Output the lines of each file in reverse order</li>
+</ol>
+<pre class='code'>
+$ ruby backwards.rb a.txt b.txt c.txt
+</pre>
+<p>The <code>ARGV</code> constant will contain the filenames as an Array (eg, in the example
+above, it would be <code>["a.txt", "b.txt", "c.txt"]</code>).</p>
+<p><!--
+backwards.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Common Ruby Tasks: Writing Files</h2>
+<h3>&#8220;Write&#8221; mode</h3>
+<pre class='code'>
+File.open('/path/to/filename', 'w') do |f|
+  f.puts "This will be added as a line with a trailing newline"
+  f.write "This won't have a trailing newline"
+end
+</pre>
+<h3>&#8220;Append&#8221; mode</h3>
+<pre class='code'>
+File.open('/path/to/filename', 'a') do |f|
+  f.puts "This will get added to the file"
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Exercise</h2>
+<h3>Writing Files</h3>
+<p class="exercise">Expand the <code>backwards.rb</code> example to write the reversed
+output to another file, given as the last argument.</p>
+<p>See how changing the mode from <code>"w"</code> to <code>"a"</code> affects the contents
+of the file over multiple runs.</p>
+<p><!--
+backwards_write.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Common Ruby Tasks: File Operations</h2>
+<h2>Coping and Moving Files:</h2>
+<p>Use <code>FileUtils.cp</code> and <code>FileUtils.mv</code></p>
+<pre class='code'>
+require 'fileutils'
+FileUtils.cp '/path/to/file', '/path/to/destination'
+FileUtils.mv '/path/to/file', '/path/to/destination'
+</pre>
+<h2>Other operations:</h2>
+<pre class='code'>
+FileUtils.rm '/path/to/file'
+FileUtils.mkdir_p '/path/to/some_dir'
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Files</h1><h2>Common Ruby Tasks: File Permissions</h2>
+<h2>Checking and Changing Permissions</h2>
+<pre class='code'>
+filename = '/path/to/filename'
+unless File.executable?(filename)
+  puts File.stat(filename).mode.to_s(8)
+  File.chmod(0755, filename)
+end
+</pre>
+<h2>Checking and Changing Ownership</h2>
+<pre class='code'>
+puts File.stat(filename).uid
+File.chown(uid, gid, filename)
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Paths</h1><h2>Common Ruby Tasks: File Paths</h2>
+<p>To join paths, use <code>File.join</code></p>
+<pre class='code'>
+&gt;&gt; File.join("/", "etc", "passwd")
+=&gt; "/etc/passwd"
+</pre>
+<p>To check the existence of a file path or its type, use:</p>
+<pre class='code'>
+&gt;&gt; File.exist?('/path/to/file')
+=&gt; true
+&gt;&gt; File.file?('/path/to/file')
+=&gt; true
+&gt;&gt; File.directory?('/path/to/file')
+=&gt; false
+&gt;&gt; File.symlink?('/path/to/file')
+=&gt; false
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Paths</h1><h2>Common Ruby Tasks: Globbing Paths</h2>
+<p>There are a number of ways to glob file paths in Ruby.</p>
+<pre class='code'>
+Dir.glob('**/*.rb') do |path|
+  # Do something with `path`
+end
+Dir['**/*.rb'].each do |path|
+  # Do something with `path`
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Paths</h1><h2>Tip: Use Pathname</h2>
+<p>The <code>pathname</code> standard library is a hidden gem for filesystem operations.</p>
+<p>Here&#8217;s some sample usage:</p>
+<pre class='code'>
+require 'pathname'
+root = Pathname.new('/path/to/app')
+logs = root + 'logs'
+logs.children.each do |child|
+  if child.file? &amp;&amp; child.size &gt; 10485760
+    child.delete
+  else
+    child.chmod(700)
+  end
+end                              
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Exceptions</h1><h2>Raising Exceptions</h2>
+<p>To raise an exception, use the <code>raise</code> keyword.</p>
+<pre class='code'>
+raise ArgumentError, "That's not right."
+</pre>
+<p>There are a number of exception classes in Ruby, but <code>ArgumentError</code>
+and <code>RuntimeError</code> are the most commonly raised.</p>
+<p>Puppet defines a number of its own exception classes</p>
+<ul>
+	<li><code>Puppet::Error</code></li>
+	<li><code>Puppet::ExecutionFailure</code></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Exceptions</h1><h2>Rescuing Exceptions</h2>
+<p>To rescue an exception, you generally use <code>begin .. rescue .. end</code>
+clauses:</p>
+<pre class='code'>
+begin
+  raise "BOOM!"
+rescue
+  puts "A 'BOOM!' happened, but we're ignoring it."
+end
+</pre>
+<p>In methods, the <code>begin</code> and <code>end</code> can be removed if you&#8217;re rescuing the entire body of
+the method:</p>
+<pre class='code'>
+def my_method
+  do_something_that_might_explode!
+rescue
+  puts "Something exploded, but we're ignoring it."
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Exceptions</h1><h2>The ensure keyword</h2>
+<p>You can use an <code>ensure</code> clause to make sure something <em>always</em>
+happens, with or without an exception being raised.  This is commonly
+done with file and socket operations.</p>
+<pre class='code'>
+def process_file(file)
+  # Do something with the file
+rescue
+  puts "We couldn't process the file."
+ensure
+  # We always close the file, regardless
+  file.close
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Converting Strings</h1><h2>Common Ruby Tasks: Converting Strings to Integers</h2>
+<h2>Gracefully defaulting to 0</h2>
+<p>Use <code>String#to_i</code></p>
+<pre class='code'>
+&gt;&gt; "23".to_i
+=&gt; 23
+&gt;&gt; "badvalue".to_i
+=&gt; 0
+&gt;&gt; "badvalue12".to_i
+=&gt; 0
+&gt;&gt; "12badvalue".to_i
+=&gt; 12
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Converting Strings</h1><h2>Common Ruby Tasks: Converting Strings to Integers</h2>
+<h2>Raising an exception on bad input</h2>
+<p>Use <code>Kernel.Integer</code></p>
+<pre class='code'>
+&gt;&gt; Integer("23")
+=&gt; 23
+&gt;&gt; Integer('badvalue')
+ArgumentError: invalid value for Integer: "badvalue"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks System Calls</h1><h2>System Calls</h2>
+<h2>Using &#8220;system&#8221;</h2>
+<p>Executes a command in a subshell, and returns <code>true</code> if successful.</p>
+<pre class='code'>
+&gt;&gt; system 'echo hello'
+hello
+=&gt; true
+</pre>
+<p>The exit code is available in <code>$?</code>:</p>
+<pre class='code'>
+&gt;&gt; $?
+=&gt; #&lt;Process::Status: pid=8510,exited(0)&gt;
+&gt;&gt; $?.success?
+=&gt; true
+&gt;&gt; $? == 0
+=&gt; true
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks System Calls</h1><h2>System Calls</h2>
+<h2>Using &#8220;exec&#8221;</h2>
+<p>Replaces the current process by running the given external command.</p>
+<pre class='code'>
+&gt;&gt; exec 'echo hello'
+hello
+#
+</pre>
+<p>As you can see, IRB has terminated because control was handed over to <code>echo</code>.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks System Calls</h1><h2>System Calls</h2>
+<h2>Using backticks</h2>
+<p>You can use backticks to get the standard output of a command.</p>
+<pre class='code'>
+&gt;&gt; `echo hello`
+=&gt; "hello\n"
+</pre>
+<p>An alternate form is <code>%x{}</code>:</p>
+<pre class='code'>
+&gt;&gt; %x{echo hello}
+=&gt; "hello\n"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks IO Streams</h1><h2>System I/O</h2>
+<h2>Using a command as a filter</h2>
+<p>To interact with a command&#8217;s standard in and out, use <code>IO.popen</code> with
+a <code>w+</code> mode.</p>
+<pre class='code'>
+IO.popen('sort', 'w+') do |cmd|
+  cmd.puts 'linux', 'darwin', 'win32'
+  cmd.close_write
+  puts cmd.read
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks IO Streams</h1><h2>System I/O</h2>
+<h2>If you need standard error</h2>
+<p>Use <code>open3</code>, part of the standard library.</p>
+<pre class='code'>
+require 'open3'
+Open3.popen3('some-command') do |stdin, stdout, stderr|
+  # Use the streams (make sure you close stdin)
+end
+</pre>
+<p>Reusing the example from the top:</p>
+<pre class='code'>
+require 'open3'
+Open3.popen3('sort') do |stdin, stdout, stderr|
+  stdin.puts "linux", "darwin", "win32"
+  stdin.close
+  puts stdout.read
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks HTTP</h1><h2>REST requests using GETs over HTTP (S)</h2>
+<p>Use the <code>net/http</code> standard library:</p>
+<pre class='code'>
+require 'net/http'
+response = Net::HTTP.get('projects.puppetlabs.com', '/projects/modules')
+</pre>
+<p>Or for multiple queries using the same HTTPS connection, you can utilise the
+library <code>net/https</code> instead. It supports enabling SSL support with the method
+<code>use_ssl</code>:</p>
+<pre class='code'>
+require 'net/https'
+
+url = URI.parse 'https://projects.puppetlabs.com/'
+http = Net::HTTP.new url.host, url.port
+http.verify_mode = OpenSSL::SSL::VERIFY_NONE # Don't check against root certs
+http.use_ssl = true
+http.start do |agent|
+  puts agent.get("/projects/modules").body
+  puts agent.get("/projects/facter").body
+  #...
+end
+</pre>
+<p>You also have the ability to set headers, deal with specific errors, POST, etc.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Yaml</h1><h2>Yaml</h2>
+<p>Yaml is a common serialization format for Ruby.</p>
+<pre class='code'>
+require 'yaml'
+hash = {:one =&gt; ['1', '2'], :two =&gt; 'foo'}
+puts hash.to_yaml
+</pre>
+<p>prints:</p>
+<pre class='code'>
+--- 
+:one: 
+- "1"
+- "2"
+:two: foo
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby Tasks Yaml</h1><h2>Loading Yaml</h2>
+<p>Yaml can be loaded from a file:</p>
+<pre class='code'>
+require 'yaml'
+
+a = YAML.load_file('/var/opt/lib/pe-puppet/state/last_run_summary.yaml')
+
+puts a['changes']['total']
+</pre>
+<p>Content is converted into Ruby types: <code>Hashes</code>, <code>Arrays</code>, <code>Strings</code> etc.</p>
+
+</div>
+<div class='slide '>
+<h1>Ruby Additional Resources</h1><h2>Additional Ruby Resources</h2>
+<h2>Websites, Blogs, and EBooks</h2>
+<ul>
+	<li><a href='http://ruby-lang.org' target='_blank'>Official Site</a></li>
+	<li><a href='http://rubyinside.com' target='_blank'>Ruby Inside</a> (news)</li>
+	<li><a href='http://mislav.uniqpath.com/poignant-guide/' target='_blank'>Why&#8217;s Poignant
+  Guide</a> (ebook)</li>
+</ul>
+<h2>More Exercises and Challenges</h2>
+<ul>
+	<li><a href='http://rubyquiz.com/' target='_blank'>Ruby Quiz</a></li>
+	<li><a href='http://codekata.pragprog.com/' target='_blank'>Code Kata</a></li>
+	<li><a href='http://github.com/edgecase/ruby_koans' target='_blank'>Ruby Koans</a>
+  (includes testing methodology)</li>
+</ul>
+<h2>Books</h2>
+<ul>
+	<li><a href='http://pragprog.com/titles/ruby/programming-ruby' target='_blank'>Programming Ruby</a>
+  (Dave Thomas, Chad Fowler, Andy Hunt)</li>
+	<li><a href='http://www.manning.com/black2/' target='_blank'>The Well Grounded Rubyist</a>
+  (David Black)</li>
+	<li><a href='http://www.amazon.com/dp/0672328844' target='_blank'>The Ruby Way</a>
+  (Hal Fulton)</li>
+	<li><a href='http://www.amazon.com/gp/product/1590597664' target='_blank'>Beginning Ruby: From Novice to Professional</a>
+  (Peter Cooper)</li>
+	<li><a href='http://pragprog.com/titles/fr_eir/enterprise-integration-with-ruby' target='_blank'>Enterprise Integration with Ruby</a>
+  (Maik Schmidt)</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Developing Facts</h3>
+<p>To add your own custom facts, add <code>.rb</code> files in
+<code>&lt;modulepath&gt;/&lt;modulename&gt;/lib/facter</code></p>
+<pre class='code'>
+Facter.add('gem_count') do
+  setcode do
+    IO.popen('gem list').readlines.length.to_s
+  end
+end
+</pre>
+<p>You can test facts locally by setting the <code>FACTERLIB</code> environment variable:</p>
+<pre class='code'>
+export FACTERLIB=&lt;modulepath&gt;/&lt;modulename&gt;/lib
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Fact values</h3>
+<p>The value returned from the <code>setcode</code> block should be either:</p>
+<ul>
+	<li>A string</li>
+	<li><code>nil</code> (same as <code>""</code>)</li>
+	<li>anything else will be cast to a string</li>
+</ul>
+<p><!--
+CHECKME
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Exercise: Creating facts dynamically</h3>
+<p>Create:</p>
+<ul>
+	<li>A fact for each installed package called <code>yum_#{package}_version</code></li>
+	<li>Examples:
+	<ul>
+		<li><code>yum_ruby_version =&gt; 1.8.5-5.el5</code></li>
+		<li><code>yum_openssh_version =&gt; 4.3p2-72.el5</code></li>
+	</ul></li>
+</ul>
+<p>Hints:</p>
+<ul>
+	<li>Use <code>yum list installed</code> (or similar)</li>
+	<li>You can wrap <code>Facter.add</code> code in other blocks</li>
+	<li>Test facts with <code>facter --puppet yum_ruby_version</code> or <code>facter --puppet | grep yum</code></li>
+	<li><code>String#split</code> will probably be useful here</li>
+</ul>
+<p><!--
+package_facts.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Exercise: Creating a fact with multiple values</h3>
+<p>Create a fact that returns a comma delimited list of tcp ports being listened on.</p>
+<ol>
+	<li>Create the list using <code>collect</code> and <code>compact</code></li>
+	<li>Make sure the ports are sorted</li>
+</ol>
+<p>Hints:</p>
+<ul>
+	<li>Use <code>netstat -nlt</code> to get the list you need to work from</li>
+</ul>
+<p><!--
+open_ports_using_each.rb
+open_ports_using_inject.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Using confine</h3>
+<p>A <code>confine</code> statement in a fact definition restricts the fact to systems where the
+given <em>key</em> (another fact) is equal to <em>value</em>.  If the <em>value</em> is an
+array, it must be any of the members.  The match is not case sensitive. The
+match cannot be a regex.</p>
+<pre class='code'>
+Facter.add 'something_using_dscl' do
+  confine :kernel =&gt; 'darwin'
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Exercise: Using confine</h3>
+<p>Create:</p>
+<ul>
+	<li>A new fact, <code>yum_version</code> which returns the version of yum</li>
+	<li>A helper fact, <code>has_yum</code> which is &#8216;true&#8217; or &#8216;false&#8217;</li>
+</ul>
+<p>Use:</p>
+<ul>
+	<li><code>confine :has_yum =&gt; 'true'</code> with your <code>yum_version</code> fact</li>
+	<li>Confine with <code>:osfamily</code> to the appropriate platforms (CentOS, Redhat, Fedora &#8211; in short not Debian)</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Facter::Util::Resolution.exec</h3>
+<p>You may want to use <code>Facter::Util::Resolution.exec</code> for shell execution,
+since it handles looking up executables via <code>which</code>,
+converting empty results to <code>nil</code>.  It&#8217;s especially useful when a
+command [or chain of them] may fail.</p>
+<pre class='code'>
+Facter.add("physicalprocessorcount") do
+  confine :kernel =&gt; :linux
+  setcode do
+    Facter::Util::Resolution.exec('grep "physical id" /proc/cpuinfo | \
+    cut -d: -f 2|sort -u|wc -l')
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Facter::Util::Resolution.exec</h3>
+<p>Commonly you can use <code>Facter::Util::Resolution.exec</code> to handle
+situations like we handled with the <code>yum_version</code> and <code>has_yum</code>
+examples, without having to confine the fact (or deal with nasty
+standard error output).</p>
+<pre class='code'>
+Facter.add('yum_version') do
+  setcode { Facter::Util::Resolution.exec('yum --version | head -1') }
+end
+</pre>
+<p>On CentOS:</p>
+<pre class='code'>
+&gt;&gt; Facter.value('yum_version')
+=&gt; "3.2.19"
+</pre>
+<p>On OSX:</p>
+<pre class='code'>
+&gt;&gt; Facter.value('yum_version')
+=&gt; nil
+</pre>
+<p>If your fact depends on executing a specific executable, you should
+probably be using <code>Facter::Util::Resolution.exec</code> instead of explicit
+confines.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Facts</h1><h3>Shorter facts</h3>
+<p>Executing a line of shell script is so commonplace in Facter that it
+supports a shorter form for it; just pass a string to <code>setcode</code> instead
+of a block.  It will handle calling it via
+<code>Facter::Util::Resolution.exec</code> for you:</p>
+<pre class='code'>
+Facter.add('yum_version') do
+  setcode 'yum --version | head -1'
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Developing Functions</h3>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>What they are</h3>
+<p>Functions are Ruby code that run <em>during compilation</em> on the host running
+<code>puppet master</code>.</p>
+<p>They are commonly used for:</p>
+<ul>
+	<li>interfacing with external tools</li>
+	<li>providing additional ruby functionality to Puppet</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Types of functions</h3>
+<p>A function is either a <code>:statement</code> or <code>:rvalue</code>.</p>
+<dl>
+  <dt><code>:statement</code></dt>
+  <dd>Code that just executes.  This is the default.</dd>
+  <dt><code>:rvalue</code></dt>
+  <dd>Code that executes and returns a value (suitable for binding to
+  a variable)</dd>
+</dt>
+</dl>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>How to add a function</h3>
+<p>A function is easy to add:</p>
+<pre class='code'>
+Puppet::Parser::Functions.newfunction(:myfunc) do
+  # ...
+end
+</pre>
+<p>If it&#8217;s an <code>:rvalue</code>:</p>
+<pre class='code'>
+Puppet::Parser::Functions.newfunction(:myfunc, :type =&gt; :rvalue) do
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Filenames are important</h3>
+<p>The name of the function and the filename must match.</p>
+<p>For example, a function <code>myfunc</code> would be located in:</p>
+<pre class='code'>
+&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/parser/functions/myfunc.rb
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Calling another function</h3>
+<p>When a function is defined, a new method <code>function_&lt;functionname&gt;</code> is
+added to the parser scope.  Since all functions are executed within
+this scope, calling another function is <em>simply a matter of invoking
+the other function&#8217;s generated method</em>.</p>
+<p>In this example, we call a different function, <code>myotherfunc</code>,
+multiplying all arguments by <code>2</code>.</p>
+<pre class='code'>
+Puppet::Parser::Functions.newfunction(:myfunc) do |args|
+  new_args = args.map { |arg| arg * 2 }
+  function_myotherfunc(new_args)
+end
+Puppet::Parser::Functions.newfunction(:myotherfunc) do |args|
+  # Does something interesting with doubled arguments
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Documenting Functions</h3>
+<p>Documentation for <code>puppet doc</code> is automatically generated. Everyone should write inline documentation for their custom puppet functions.</p>
+<p>To do so, pass a <code>:doc</code> option to <code>newfunction</code>:</p>
+<pre class='code'>
+Puppet::Parser::Functions.newfunction(:mine, :doc =&gt;
+  "This function implements selfish behaviour. Example
+  usage includes...") do
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Raising Exceptions</h3>
+<p>Raise <code>Puppet::ParseError</code> within your function:</p>
+<pre class='code'>
+raise Puppet::ParseError, "BOOM! This function exploded."
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Utility: Checking functions</h3>
+<p>Verify a function has been defined (and what its generated method is
+for the parser scope):</p>
+<pre class='code'>
+&gt;&gt; require 'puppet'
+&gt;&gt; Puppet::Parser::Functions.function(:myfunc)
+=&gt; "function_myfunc"
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Utility: Listing functions</h3>
+<p>You can see the list of loaded functions:</p>
+<pre class='code'>
+&gt;&gt; Puppet::Parser::Functions.functions.keys
+=&gt; [:err, :warning, :alert, :notice, :emerg, :info, :crit, :debug]
+</pre>
+<p>You can see functions get added to this list when autoloading occurs:</p>
+<pre class='code'>
+&gt;&gt; Puppet::Parser::Functions.function(:template)
+=&gt; "function_template"
+&gt;&gt; Puppet::Parser::Functions.functions.keys
+=&gt; [:err, :warning, :alert, :template, :notice, :emerg, :info, :crit, :debug]
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Utility: Testing functions</h3>
+<p>You can test your loaded functions in IRB by declaring a new Puppet scope
+object and calling the function on the object:</p>
+<pre class='code'>
+&gt;&gt; require 'puppet'
+=&gt; true
+&gt;&gt; scope = Puppet::Parser::Scope.new
+=&gt; #&lt;Puppet::Parser::Scope:0xb77c53c8 @symtable={}, @class_scopes={}, @defaults={}, \
+   @namespaces=[""], @ephemeral=[#&lt;Puppet::Parser::Scope::Ephemeral:0xb77c5300      \
+   @parent=nil, @symbols={}&gt;], @tags=[]&gt;
+&gt;&gt; jeff = scope.function_getemail(['/tmp/emails.yaml', 'jeff'])
+=&gt; "jeff_email@puppetlabs.com"
+</pre>
+<p>Notice the first argument to the function is an array with multiple arguments.</p>
+<p>You can also you use puppet directly to test a function:</p>
+<pre class='code'>
+puppet apply -e 'notice(getemail('/tmp/emails.yaml','jeff'))'
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Functions</h1><h3>Exercise: Write a function called <code>extractvalue</code></h3>
+<p>The function should accept two arguments:</p>
+<ul>
+	<li>The filename</li>
+	<li>The field</li>
+</ul>
+<p>Invoke the function inside a manifest:
+<pre class='code'>
+$email = extractvalue(&#8220;/etc/emails.yml&#8221;, &#8220;joe&#8221;)
+</pre></p>
+<p>Assuming the file format is YAML, the function should return the value
+for that key.  For instance, with the following <code>/etc/emails.yml</code>:</p>
+<pre class='code'>
+---
+john: john@example.com
+joe:  joe@example.com
+</pre>
+<ul>
+	<li>Then <code>$email</code> should be set to <em>joe@example.com</em></li>
+	<li>The function should raise exceptions where appropriate.</li>
+</ul>
+<p><!--
+extractvalue.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>How do you know your code isn&#8217;t broken?</h2>
+<p>You have to know two things:</p>
+<ol>
+	<li>What should the code do?</li>
+	<li>What does   the code do?</li>
+</ol>
+<p>How do you answer those questions?</p>
+<p>You could run the code &#8230;. everytime you make any changes</p>
+<p>Why not have the computer run the code for you?</p>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>What is Rspec?</h2>
+<p>Rspec is a unit testing framework.</p>
+<ul>
+	<li>allows you to write simple tests</li>
+	<li>organizes tests in a meaningful way</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Organizing Tests:</h2>
+<p><code>&lt;modulepath&gt;/join/spec/unit/puppet/parser/functions/join_spec.rb</code></p>
+<pre class='code'>
+require 'puppet'
+describe Puppet::Parser::Functions.function(:join) do
+  let :scope do
+    Puppet::Parser::Scope.new
+  end
+  it "should turn an array of items into a string" do
+    scope.function_join([['foo','bar','baz'], ':']).should == 'foo:bar:baz'
+  end
+  it "should fail if the correct arguments are not supplied"
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Should</h2>
+<p>The rspec method <code>should</code> is used to assert that an expectation is satisfied.</p>
+<pre class='code'>
+(1+2).should == 3
+</pre>
+<p>It also verifies behavior that fails</p>
+<pre class='code'>
+(1+1).should be_nil
+</pre>
+<p>Rspec provides helpers for additional expectations:</p>
+<pre class='code'>
+[1,2,3].should include(2)
+expect { 1 / 0 }.to raise_error(ZeroDivisionError)
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Let</h2>
+<p>The rspec method <code>let</code> defines a memoized helper method that returns a value.  It is lazy-evaluated, so isn&#8217;t evaluated until it&#8217;s called. The value is cached amongst calls within the SAME example, but not across SEPARATE examples.</p>
+<pre class='code'>
+$count = 0
+describe "let" do
+  let(:count) { $count += 1 }
+
+  it "memoizes the value" do
+    count.should == 1
+    count.should == 1
+  end
+
+  it "is not cached across examples" do
+    count.should == 2
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Subject</h2>
+<p>The rspec method <code>subject</code> specifies the object&#8217;s behavior that being described by the test.  It works in the same manner as the let method, however creates a new instance of your object.</p>
+<p>Explicitly set subject:
+<pre class='code'>
+describe &#8216;it should create a new person&#8217; do
+  subject { Person.new(&#8216;jeff&#8217;) }
+  it &#8216;should create a new person named jeff&#8217; do
+    subject.name.should == &#8216;jeff&#8217;
+  end
+end
+</pre></p>
+<p>Implicitly set subject:
+<pre class='code'>
+describe Person.new(&#8216;jeff&#8217;) do
+  it &#8216;should create a new person named jeff&#8217; do
+    subject.name.should == &#8216;jeff&#8217;
+  end
+end
+</pre></p>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Subject vs Let</h2>
+<p>Use <code>let</code> as you would an instance variable &#8211; the benefit is that it&#8217;s lazy-evaluated ONLY when it&#8217;s called in an example.  Use <code>subject</code> if not implicitly set to set the object&#8217;s behavior that we&#8217;re testing.</p>
+<pre class='code'>
+describe 'beerdrinkers' do
+  subject { PuppetUser.new('dan') }
+  let :cheer { 'woo-hoo' }
+
+  it "should create a 'woo-hoo' cheer" do
+    subject.cheer.should == cheer
+  end
+end
+
+describe Person.new('jeff') do
+  it 'should create a new person named jeff' do
+    subject.name.should == 'jeff'
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Rspec</h1><h2>Exercise Rspec:</h2>
+<ul>
+	<li>Implement the function <code>join</code> so that it satisfies the previous specification:</li>
+</ul>
+<p><code>&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/parser/functions/join.rb</code></p>
+<ul>
+	<li>Write additional unit tests that specify the behavior of missing arguments.</li>
+</ul>
+<pre class='code'>
+require 'puppet'
+describe Puppet::Parser::Functions.function(:join) do
+  let :scope do
+    Puppet::Parser::Scope.new
+  end
+  it "should turn an array of items into a string" do
+    scope.function_join([['foo','bar','baz'], ':']).should == 'foo:bar:baz'
+  end
+  it "should fail if the correct arguments are not supplied"
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Ruby DSL</h1></div>
+<div class='slide '>
+<h1>Puppet Ruby</h1><h3>Internal Ruby DSL</h3>
+<p>Starting in 2.6.x, Puppet manifests can be written in ruby.</p>
+
+</div>
+<div class='slide '>
+<h1>Puppet Ruby</h1><h3>Types can be declared in Ruby with a method of the same name:</h3>
+<pre class='code'>
+file '/etc/ssh/sshd_config',
+  :source =&gt; 'puppet:///modules/ssh/sshd_config',
+  :require =&gt; 'Package[ssh]'
+</pre>
+<p>This would be the same as:</p>
+<pre class='code'>
+file { '/etc/ssh/sshd_config':
+  source  =&gt; 'puppet:///modules/ssh/sshd_config',
+  require =&gt; 'Package[ssh]',
+}
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Puppet Ruby</h1><h3>Must be in containers:</h3>
+<p>The resource type methods can only be called from block arguments to container methods.</p>
+<ul>
+	<li><code>node</code> &#8211; creates a node block</li>
+	<li><code>define</code> &#8211; creates a define block</li>
+	<li><code>hostclass</code> &#8211; creates a class block</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Puppet Ruby</h1><h3>Resources can be specified within a class:</h3>
+<pre class='code'>
+hostclass :ssh do
+  package "ssh", 
+    :name =&gt; 'openssh',
+    :ensure =&gt; :present
+  file "/etc/ssh/sshd_config",
+    :source =&gt; "puppet:///ssh/sshd_config", 
+    :require =&gt; "Package[ssh]"
+  service :sshd, 
+    :ensure =&gt; :running, 
+    :require =&gt; "File[/etc/ssh/sshd_config]"
+end
+
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Puppet Ruby</h1><h3>The Ruby DSL can be used in a define:</h3>
+<p>Below is an example of something that requires iteration:</p>
+<pre class='code'>
+define :mkdir_p do
+  name = @name
+  until name == '/'
+    file name, :ensure =&gt; 'directory'
+    name = File.dirname(name)
+  end
+end
+node 'default' do
+  mkdir_p '/tmp/foo/bar/baz'
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>The RAL provides a consistent model for resources across supported platforms.</h3>
+<div style="text-align: center;">
+<p><br/>
+<img src="images/resource_abstraction_layer.png" /></p>
+</div>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>Resource Types:</h3>
+<p>Specification of attributes that can be used to describe a configuration element.</p>
+<h3>Example:</h3>
+<p>File resource can be described in terms of</p>
+<ul>
+	<li>content</li>
+	<li>path</li>
+	<li>mode</li>
+	<li>owner</li>
+	<li>group</li>
+	<li>&#8230;</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>Resource types depend on providers to translate specification into implementation.</h3>
+<pre class='code'>
+package {'apache2':
+  ensure =&gt; installed,
+}
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>Each resource type has one or more providers.</h3>
+<div style="text-align: center;">
+<p><br/>
+<img src="images/resource_abstraction_layer.png" /></p>
+</div>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>Providers are the interface between the underlying OS and the resource types.</h3>
+<div style="text-align: center;">
+<p><br/>
+<img src="images/resource_abstraction_layer.png" /></p>
+</div>
+
+</div>
+<div class='slide '>
+<h1>Resource Abstraction Layer</h1><h3>The package resource type has many providers:</h3>
+<pre class='code'>
+&gt;ls /usr/lib/ruby/site_ruby/1.8/puppet/provider/package/
+aix.rb       aptrpm.rb      freebsd.rb  pkgdmg.rb       rpm.rb          urpmi.rb
+appdmg.rb    blastwave.rb   gem.rb      pkg.rb          rug.rb          yumhelper.py
+apple.rb     darwinport.rb  hpux.rb     portage.rb      sunfreeware.rb  yum.rb
+aptitude.rb  dpkg.rb        nim.rb      ports.rb        sun.rb          zypper.rb
+apt.rb       fink.rb        openbsd.rb  portupgrade.rb  up2date.rb
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1></div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>What is a resource type?</h3>
+<p>Types specify the interface of a resource.</p>
+<p>When writing a type in Ruby, we have to specify:</p>
+<ul>
+	<li>attributes</li>
+	<li>documentation</li>
+	<li>implicit relationships</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>What is a provider?</h3>
+<p>Resource types depend on providers to translate specification into implementation.</p>
+<p>Several providers may be available for a given resource type to
+provide cross-platform support.</p>
+<p>For example, the following providers exist for the <code>package</code> type:</p>
+<pre class='code'>
+# ls /opt/puppet/lib/ruby/site_ruby/1.8/puppet/provider/package
+aix.rb       blastwave.rb  macports.rb  pkgdmg.rb       rpm.rb          yumhelper.py
+appdmg.rb    dpkg.rb       msi.rb       pkg.rb          rug.rb          yumhelper.pyc
+apple.rb     fink.rb       nim.rb       pkgutil.rb      sunfreeware.rb  yumhelper.pyo
+aptitude.rb  freebsd.rb    openbsd.rb   portage.rb      sun.rb          yum.rb
+apt.rb       gem.rb        pacman.rb    ports.rb        up2date.rb      zypper.rb
+aptrpm.rb    hpux.rb       pip.rb       portupgrade.rb  urpmi.rb
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How types and providers interact</h3>
+<p>Property syncronization has the following steps:</p>
+<ul>
+	<li><code>retrieve</code> &#8211; determine current value of a property (<code>is</code> value)</li>
+	<li><code>insync?</code> &#8211; see if the current (<code>is</code>) value is syncronized with the desired (<code>should</code>) value.</li>
+	<li><code>sync</code> &#8211; synchronize the resource</li>
+</ul>
+<p>When iterating over the <code>properties</code> for a <code>Type</code>, the implementaion of <code>sync</code> and <code>retrieve</code> are delegated to the provider.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><div style="text-align: center;">
+<p><br/>
+<img src="images/property_sync.png" /></p>
+</div>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a type</h3>
+<p>To add a type, use the <code>Puppet::Type.newtype</code> method.</p>
+<pre class='code'>
+# &lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/type/media.rb
+Puppet::Type.newtype(:media) do
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Where to put types</h3>
+<p>Types should be put in:</p>
+<pre class='code'>
+&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/type/
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Filenames are important</h3>
+<p>The name of the type and the filename must match.</p>
+<p>For example, a type <code>media</code> would be located in:</p>
+<pre class='code'>
+&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/type/media.rb
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a type description</h3>
+<p>Use the <code>desc</code> method:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  desc "This is an example to sync media files."
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Attributes:</h3>
+<p>Atrributes are used to describe a resource&#8217;s desired state.</p>
+<pre class='code'>
+user {'dan':
+  ensure =&gt; present,
+  managehome =&gt; true,
+  gid =&gt; 'dansgroup',
+}
+</pre>
+<p>There are two types of attributes:</p>
+<ul>
+	<li>properties</li>
+	<li>parameters</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Properties</h3>
+<p>Properties model the desired state of a system.</p>
+<p>They can be queried from the underlying system, compared, and synchronized with the desired state.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Parameters</h3>
+<p>Parameters are just data that is made available to the providers when they synchronize properties.</p>
+<p>These are generally values that are only applicable during resource creation,
+but can only specify read-only attributes.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Resource Example:</h3>
+<p>Can anyone tell which attributes are the properties? parameters?</p>
+<pre class='code'>
+file { '/tmp/foo':
+  ensure   =&gt; file,
+  mode     =&gt; '664',
+  owner    =&gt; 'root',
+  group    =&gt; 'root',
+  checksum =&gt; md5,
+  content  =&gt; 'foo',
+}
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a parameter</h3>
+<p>To add a parameter, use <code>newparam</code>:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:path) do
+    # ...
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a parameter description</h3>
+<p>Use the <code>desc</code> method inside the parameter:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:path) do
+    desc "The location to store the media file"
+    # ...
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to set the namevar</h3>
+<p>Set the namevar with the <code>:namevar</code> option to <code>newparam</code>:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:path, :namevar =&gt; true) do
+    desc "The location to store the media file"
+    # ...
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to validate values</h3>
+<p>Use the <code>validate</code> method inside the parameter, raising an exception
+if the value is invalid.</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:source) do
+    desc "The source URL for the file"
+    validate do |value|
+      unless value =~ /^(https?|ftp):\/\//
+        raise ArgumentError, "Source is not a HTTP(S) or FTP URL: #{value}"
+      end
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to munge (normalize) values</h3>
+<p>If you have a parameter whose values you want normalized, use the <code>munge</code> method.</p>
+<p>Here we make sure that the <code>value</code> set for this parameter is always a URI object:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:source) do
+    # ...
+    munge do |value|
+      # Return a parsed URI object
+      URI.parse(value)
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to set other parameters automatically</h3>
+<p>Use munge to modify parameters.</p>
+<p>Munge is executed <em>after validation</em>.</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...  
+  newparam(:source) do
+    desc "The source URL for the file"
+    validate do |value|
+      unless value =~ /^(https?|ftp):\/\//
+        raise ArgumentError, "Source is not a HTTP(S) or FTP URL: #{value}"
+      end
+    end
+    munge do |value|
+      value = URI.parse(value)
+      case value.scheme
+      when /^http/
+        resource[:provider] = :http
+      else
+        resource[:provider] = value.scheme.to_sym
+      end
+      value
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Exercise: Adding a Type</h3>
+<p>Add a type, <code>rcsrepo</code>, that models a local version
+control repository.</p>
+<p>This type should have the following parameters:</p>
+<ul>
+	<li><code>path</code>, a local file path (this is the <code>namevar</code>)</li>
+	<li><code>source</code>, the source URL for the repository</li>
+</ul>
+<p>You should validate that the <code>path</code> is absolute and that the source is
+a valid URI.  Both parameters and the type should have a description.</p>
+<p><!--
+rcsrepo.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a property</h3>
+<p>Properties are added with <code>newproperty</code>:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newproperty(:mode) do
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a property description</h3>
+<p>Use the <code>desc</code> method inside the property definition:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newproperty(:mode) do
+    desc "The mode of the file"
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to restrict property values</h3>
+<p>Use <code>newvalues</code> inside the property definition:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newproperty(:mode) do
+    desc "The mode of the file"
+    newvalues(/^\d+$/)
+  end
+end
+</pre>
+<p>You can use a regular expression to restrict values.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to add a property value default</h3>
+<p>Use <code>defaultto</code> inside the property definition:</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  # ...
+  newproperty(:mode) do
+    desc "The mode of the file"
+    newvalues(/^\d+$/)
+    defaultto '0755'
+    munge do |value|
+      # Ensure octal
+      unless value[0, 1] == '0'
+        value = "0#{value}"
+      end
+      Integer(value)
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Exercise: Adding a property</h3>
+<p>Add a property, <code>revision</code>, to our <code>rcsrepo</code> example.</p>
+<p>The property should accept any non-empty, non-whitespace string
+value.  It should have a description.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Ensurable</h3>
+<p>The method <code>ensurable</code> creates the <code>ensure</code> property with <code>:present</code> and <code>:absent</code>
+values that interacts with a provider&#8217;s <code>create</code>, <code>exists?</code>, and
+<code>destroy</code> methods.</p>
+<pre class='code'>
+Puppet::Type.newtype(:media) do
+  ensurable
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Exercise: Ensurable</h3>
+<p>Make rcsrepo type ensurable</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Ensurable with a block</h3>
+<p>You can add additional values for <code>ensure</code> by providing
+<code>ensurable</code> with a block and using <code>newvalue</code>.</p>
+<pre class='code'>
+Puppet::Type.newtype(:group) do
+  ensurable do
+    desc "Create or remove the group."
+    newvalue(:present) do
+      provider.create
+    end
+    newvalue(:absent) do
+      provider.delete
+    end
+    # ...
+  end
+end
+
+
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>How to support array values</h3>
+<p>Set the <code>:array_matching</code> option to <code>:all</code> when defining the property:</p>
+<pre class='code'>
+Puppet::Type.newtype(:volume_group) do
+  newparam(:physical_volumes, :array_matching =&gt; :all) do
+    # ...
+  end
+end
+</pre>
+<p>By default, <code>:array_matching</code> is <code>:first</code>. These are the only two options.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Types</h1><h3>Exercise: Testing Types</h3>
+<p>Create spec tests file:</p>
+<pre class='code'>
+&lt;modulepath&gt;/&lt;modulename&gt;/spec/unit/puppet/type/rcsrepo_spec.rb
+</pre>
+<p>Use this code, and fill out the test bodies:</p>
+<pre class='code'>
+require 'puppet'
+require 'puppet/type/rcsrepo'
+describe Puppet::Type.type(:rcsrepo) do
+  subject { Puppet::Type.type(:rcsrepo).new(:path =&gt; '/foo') }
+
+  it 'should accept ensure'
+  it 'should require that path be absolute'
+  it 'should not accept whitespace in a revision'
+  it 'should accept a valid source URI'
+  it 'should not accept an invalid source URI'
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Developing Providers</h3>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>How to add a provider</h3>
+<p>To add a provider, use the <code>provide</code> method on the type.</p>
+<pre class='code'>
+# &lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/provider/media/http.rb
+Puppet::Type.type(:media).provide(:http) do
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Creating a provider</h3>
+<p>Create a <code>git</code> provider for our <code>rcsrepo</code> type.</p>
+<p><!--
+git_provider_shell.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>How to define commands</h3>
+<p>To define external commands to use from the provider, use the
+<code>commands</code> method, which accepts a hash of command names and
+executable path.</p>
+<p>If the executable path isn&#8217;t absolute, it is looked up via <code>which</code>.</p>
+<p>The provider cannot be used unless all of its commands can be found.</p>
+<pre class='code'>
+Puppet::Type.type(:logical_volume).provide(:lvm) do
+    desc "Manages LVM logical volumes"
+    
+    commands :lvcreate =&gt; 'lvcreate',
+             :lvremove =&gt; 'lvremove',
+             :lvs      =&gt; 'lvs',
+             :umount   =&gt; 'umount',
+             :mount    =&gt; 'mount'
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Add a command</h3>
+<p>Add the <code>git</code> command to the <code>git</code> provider.</p>
+<p><!--
+git_command.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Using commands</h3>
+<p>You provider will automatically create methods for every specified command.</p>
+<pre class='code'>
+Puppet::Type.type(:mounter).provide(:nfs) do
+  commands :mount =&gt; 'mount'
+  # ...
+  mount('-t', 'ext3', '/path/to/device', '/mnt/mymount')
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Execution Failure</h3>
+<p>If a command exits with a non-0 exit code, a
+<code>Puppet::ExecutionFailure</code> exception is raised.  Often it makes sense
+to rescue this exception and raise your own with more details.</p>
+<pre class='code'>
+begin
+  mount('-t', 'ext3', '/path/to/device', '/mnt/mymount')
+rescue Puppet::ExecutionFailure =&gt; e
+  raise Puppet::Error, "Couldn't mount /path/to/device (#{e.message})"
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Confining to facts</h3>
+<p>To confine a provider to a fact, use <code>confine</code> (the same as with
+facts):</p>
+<pre class='code'>
+Puppet::Type.type(:media).provide(:http) do
+  confine :has_nfs =&gt; 'true'
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Getting resource attributes values</h3>
+<p>A provider can access the resource&#8217;s attribute values using the <code>[]</code> method on the resource:</p>
+<pre class='code'>
+resource[:path]
+resource[:source]
+resource[:provider]
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Interacting with ensurable types</h3>
+<p>If your provider is for an <code>ensurable</code> type, it should support
+<code>create</code>, <code>exists?</code>, and <code>destroy</code> methods:</p>
+<pre class='code'>
+require 'fileutils'
+require 'curl'
+
+Puppet::Type.type(:media).provide(:http) do
+  confine :has_nfs =&gt; 'true'
+
+  def create
+    Curl::Easy.download(resource[:source], resource[:path])
+  end
+  def exists?
+    File.file?(resource[:path])
+  end
+  def destroy
+    FileUtils.rm_rf(resource[:path])
+  end
+  # ...
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Provider <code>exists</code> method</h3>
+<p>Add an <code>exists?</code> method to check if a repository has been
+created at <code>path</code>. Be sure to add unit tests!</p>
+<p><code>&lt;modulepath&gt;/&lt;modulename&gt;/spec/unit/provider/rcsrepo/git_spec.rb</code>:</p>
+<pre class='code'>
+require 'puppet'
+require 'fileutils'
+
+describe 'The git provider for the rcsrepo type' do
+  let(:test_dir) { File.join('/tmp', Time.now.to_i.to_s, 'repo') }
+  let(:resource) { Puppet::Type::Rcsrepo.new({:path =&gt; test_dir}) }
+  subject { Puppet::Type.type(:rcsrepo).provider(:git).new(resource) }
+  # ...
+  after :each do
+    FileUtils.rm_rf(File.dirname(test_dir)) if File.exists?(test_dir)
+  end
+end
+
+</pre>
+<p><!--
+git_exists.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Stubbing</h2>
+<p>How can you test without affecting your system?</p>
+<p>With the <code>expects</code> method, you can specify which methods should be called (and how), without actually invoking them.</p>
+<p>Stubbing should be used sparingly, to avoid testing how code works rather than
+if it works.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Mocha</h2>
+<p>The Puppet framework uses <code>Mocha</code> for stubbing.</p>
+<pre class='code'>
+@missile.expects(:launch)
+@big_red_button.press
+</pre>
+
+<pre class='code'>
+FileUtils.expects(:rm_rf).with('/')
+@my_system.hose
+</pre>
+<p>Other useful variations:</p>
+<ul>
+	<li><code>instance.expects(:method).at_least_once</code></li>
+	<li><code>instance.expects(:method).never</code></li>
+	<li><code>instance.expects(:method).with {|x,y,z| x &gt; 10}</code></li>
+	<li><code>instance.unstub(:method) # To clear stubbing</code></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Expectations</h2>
+<p>Both the stubs() and expects() methods provide a method for simulating conditions with your code.  The stubs() method allows you to simulate the code being run and returning a value like below:</p>
+<pre class='code'>
+# /tmp/file.rspec
+require 'mocha'
+RSpec.configure { |config| config.mock_with :mocha }
+
+describe 'opening a file' do
+  let :filename do
+    '/tmp/file.txt'
+  end
+
+  it 'should call File.read' do
+    File.stubs(:read).with(filename).returns('File Contents')
+    File.read(filename)
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Expectations</h2>
+<p>Running the test in the previous example:</p>
+<pre class='code'>
+$&gt;rspec spec.rb
+.
+
+Finished in 0.09533 seconds
+1 example, 0 failures
+</pre>
+<p>File.read was stubbed out, so it was never actually EXECUTED on the system (notable because the test passes even though <code>/tmp/file.txt</code> doesn&#8217;t exist).</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Expectations</h2>
+<p>The expects() method does the same as stubs, however it ALSO establishes an EXPECTATION that the code be called.</p>
+<pre class='code'>
+# /tmp/file.rspec
+require 'mocha'
+RSpec.configure { |config| config.mock_with :mocha }
+
+describe 'opening a file' do
+  let :filename do
+    '/tmp/file.txt'
+  end
+
+  it 'should call File.read' do
+    File.expects(:read).with(filename).returns('File Contents')
+    File.read(filename)
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Expectations</h2>
+<p>Running the test results in a passing test, but comment out the File.read line in the previous example:</p>
+<pre class='code'>
+# /tmp/file.rspec
+require 'mocha'
+RSpec.configure { |config| config.mock_with :mocha }
+
+describe 'opening a file' do
+  let :filename do
+    '/tmp/file.txt'
+  end
+
+  it 'should call File.read' do
+    File.expects(:read).with(filename).returns('File Contents')
+    #File.read(filename)
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Expectations</h2>
+<p>Commenting out the line causes the test to fail (because the spec test EXPECTED File.read to be called during the test and it wasn&#8217;t).</p>
+<pre class='code'>
+$&gt;rspec spec.rb
+F
+
+Failures:
+
+ 1) opening a file should call File.read
+    Failure/Error: File.expects(:read).with(filename).returns('File Contents')
+    Mocha::ExpectationError:
+      not all expectations were satisfied
+      unsatisfied expectations:
+      - expected exactly once, not yet invoked: File.read('/tmp/file.txt')
+    # ./spec.rb:11
+
+Finished in 0.09578 seconds
+1 example, 1 failure
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h2>Notes on Stubbing</h2>
+<ul>
+	<li>If you&#8217;re going to stub out a call, it&#8217;s best to use expects() and establish an expectation that the call is made.</li>
+	<li>Keep your tests tight enough that if someone changes the desired behavior an error is thrown.</li>
+	<li>If you&#8217;re doing TOO much stubbing, however, you may be testing HOW it works rather than IF it works.</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Provider <code>create</code> method</h3>
+<p>Add a <code>create</code> method to the <code>git</code> provider that will create the repository.</p>
+<ul>
+	<li>If the <code>source</code> property is set, <code>git clone</code> should be used to pull
+  it down to <code>path</code></li>
+	<li>Otherwise, an empty repository should be created with <code>git init</code></li>
+	<li>Stub out the calls to <code>git</code></li>
+</ul>
+<p>Configure RSpec to use Mocha:</p>
+<pre class='code'>
+require 'mocha'
+RSpec.configure do |config|
+  config.mock_with :mocha
+end
+</pre>
+<p><!--
+git_create.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Provider <code>destroy</code> method</h3>
+<p>Add a <code>destroy</code> method that removes a repository at <code>path</code></p>
+<ul>
+	<li>Be sure to add unit tests!</li>
+</ul>
+<p><!--
+git_destroy.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Interacting with type properties</h3>
+<p>When resource types query for the current system value of a property,
+they will call a method on the provider by the same name</p>
+<pre class='code'>
+Puppet::Type.type(:media).provide(:http) do
+  # ...
+
+  def mode
+    octal = File.stat.mode(resource[:path]).to_s(8)
+    # For now, only care about the last 4 digits
+    Integer(octal[-4..-1])
+  end
+
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Adding a reader method</h3>
+<p>Add a <code>revision</code> method to the <code>git</code> provider to return
+the current revision.</p>
+<p>Hint: Here&#8217;s how to do it from the shell:</p>
+<pre class='code'>
+$ git rev-parse HEAD
+</pre>
+<p><!--
+git_revision_reader.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Interacting with type properties</h3>
+<p>When a resource type determines a property is out of sync, it will
+call the <em>attribute writer</em> method, the name of the property plus <code>=</code> :</p>
+<pre class='code'>
+Puppet::Type.type(:media).provide(:http) do
+  # ...
+
+  def mode=(value)
+    FileUtils.chmod(value, resource[:path])
+  end
+
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Providers</h1><h3>Exercise: Adding a writer method</h3>
+<p>Add a <code>revision=</code> method to the <code>git</code> provider to set the
+current revision.</p>
+<p>Hint: Here&#8217;s an approach from the shell (replace <code>&lt;revision&gt;</code>):</p>
+<pre class='code'>
+$ git fetch origin
+$ git checkout &lt;revision&gt;
+</pre>
+<p><!--
+git_revision_writer.rb
+--></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><p>The reporting interface in puppet provides a wealth of information related to the current state and result of puppet runs.</p>
+<p>Full documentation can be found at:</p>
+<p><a href="http://projects.puppetlabs.com/projects/puppet/wiki/Report_Format_2" target='_blank'>Report Format Reference</a></p>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Where to add custom reports:</h3>
+<p>Custom reports should be added at:</p>
+<pre class='code'>
+&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/reports/myreport.rb
+</pre>
+<p>NOTE: The filename should match the report handler.</p>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Configuring client</h3>
+<pre class='code'>
+#
+#  /etc/puppet/puppet.conf
+#
+[agent]
+    report = true
+
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Configuring Server</h3>
+<pre class='code'>
+#
+#  /etc/puppet/puppet.conf
+#
+[master]
+    reports = tagmail,store,myreport
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Creating a report:</h3>
+<ul>
+	<li>Register a report with puppet&#8217;s report handler.</li>
+	<li>Document report with <code>desc</code> method.</li>
+	<li>Reporting logic should be implemented in <code>process</code> method.</li>
+</ul>
+<pre class='code'>
+require 'puppet'
+Puppet::Reports.register_report(:myreport) do
+  desc "document the report"
+  def process
+    # report logic goes here
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Processing reports</h3>
+<p>The following methods from <code>Puppet::Transaction::Report</code> are available to your reports.</p>
+<ul>
+	<li><code>host</code> &#8211; certificate name of reporting host</li>
+	<li><code>time</code> &#8211; time when the report was generated</li>
+	<li><code>logs</code> &#8211; list of log messages associated with report</li>
+	<li><code>metrics</code> &#8211; metrics for report</li>
+	<li><code>resource_statuses</code> &#8211; mapping of resource status for a run to <code>events</code></li>
+	<li><code>configuration_version</code> &#8211; identifier for the current manifests</li>
+	<li><code>status</code> &#8211; overall status of the node (failed, changed, unchanged)</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Report Logs: Information about messages logged during a run.</h3>
+<p>Data members for <code>logs</code>:</p>
+<ul>
+	<li><code>level</code> &#8211; loglevel</li>
+	<li><code>message</code> &#8211; log message</li>
+	<li><code>source</code> &#8211; resource that generated message.
+	<ul>
+		<li>a source of <code>Puppet</code> indicates the message was not generated by a resource.</li>
+	</ul></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Report Logs example:</h3>
+<p>Collecting failures</p>
+<pre class='code'>
+require 'puppet'
+Puppet::Reports.register_report(:customreport) do
+  desc "document the report"
+  def process
+    File.open('/var/log/puppet_failures.log', 'a') do |f| 
+      logs.each do |l| 
+        if l.level == :err
+          f.puts "Error: #{l.message}"
+        end 
+      end 
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Report Metrics</h3>
+<p>All metrics are composed of a name and values.</p>
+<p>The following members of <code>metrics</code> exist:</p>
+<ul>
+	<li><code>time</code> &#8211; metrics for time consumed by each resource type.</li>
+	<li><code>resources</code> &#8211; number of resources in each state (<code>out_of_sync</code>, <code>failed</code>, <code>changed</code>, <code>total</code>)</li>
+	<li><code>events</code> &#8211; number of events of each type (<code>success</code>, <code>failure</code>, <code>audit</code>, <code>noop</code>, <code>total</code>)</li>
+	<li><code>changes</code> &#8211; number of resources that changed</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Report resource status via <code>resource_statuses</code></h3>
+<ul>
+	<li><code>resource_statuses</code> maps <code>resource id</code> to <code>Puppet::Resource::Status</code>
+	<ul>
+		<li><code>Puppet::Resource::Status</code> object members include:
+		<ul>
+			<li><code>evaluation_time</code> &#8211; time taken to evaluate a resource</li>
+			<li><code>events</code> &#8211; all events for a resource</li>
+			<li><code>change_count</code> &#8211; number of properties changed</li>
+			<li><code>out_of_sync_count</code> &#8211; number of properties out of sync</li>
+			<li><code>failed</code> &#8211; number of failed property changes</li>
+		</ul></li>
+	</ul></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Events</h3>
+<ul>
+	<li>When properties need to be synchronized, they create <code>events</code></li>
+	<li>Each resource can have many properties, thus many <code>events</code></li>
+</ul>
+<ul>
+	<li><code>Puppet::Transaction::Event</code> object members include:
+	<ul>
+		<li><code>property</code> &#8211; Name of property for event</li>
+		<li><code>previous_value</code> &#8211; The original value of <code>property</code></li>
+		<li><code>desired_value</code> &#8211; The attempted value of <code>property</code></li>
+		<li><code>message</code> &#8211; The message generated by event</li>
+		<li><code>status</code> &#8211; <code>success</code>, <code>failure</code>, <code>noop</code> or <code>audit</code></li>
+	</ul></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Developing Reports</h1><h3>Custom Report Exercise:</h3>
+<p>Write a custom report: <code>&lt;modulepath&gt;/&lt;modulename&gt;/lib/puppet/reports/report_status.rb</code></p>
+<p>For each resource, output its changes to the end of <code>/var/lib/puppet/reports/report.txt</code></p>
+<p>Use:</p>
+<ul>
+	<li>resource name</li>
+	<li>property name</li>
+	<li>old value</li>
+	<li>new value</li>
+</ul>
+<p>Hints:</p>
+<ul>
+	<li>Use <code>resources_statuses</code> and its <code>events</code> generated</li>
+	<li>Use <code>pluginsync</code> to copy the report</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Introduction</h2>
+<p>Requests to Puppet are routed through the indirector.</p>
+<p>The indirector is Puppet&#8217;s implementation of a <code>RESTful</code> interface.</p>
+<p>All calls are composed of:</p>
+<ul>
+	<li><code>indirection</code></li>
+	<li><code>action</code></li>
+	<li><code>key</code></li>
+	<li><code>options</code></li>
+</ul>
+<p>The indirector implements actions for:</p>
+<ul>
+	<li><code>find</code></li>
+	<li><code>save</code></li>
+	<li><code>search</code></li>
+	<li><code>destroy</code></li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Indirections:</h2>
+<p>Puppet supports the following indirections:</p>
+<pre class='code'>
+# find lib/puppet/indirector -type d
+./lib/puppet/indirector/file_content
+./lib/puppet/indirector/certificate_revocation_list
+./lib/puppet/indirector/resource
+./lib/puppet/indirector/certificate_request
+./lib/puppet/indirector/node
+./lib/puppet/indirector/resource_type
+./lib/puppet/indirector/certificate
+./lib/puppet/indirector/file_bucket_file
+./lib/puppet/indirector/catalog
+./lib/puppet/indirector/run
+./lib/puppet/indirector/status
+./lib/puppet/indirector/file_metadata
+./lib/puppet/indirector/key
+./lib/puppet/indirector/report
+./lib/puppet/indirector/facts
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Termini</h2>
+<p>Indirections route requests to whatever terminus Puppet is configured to use.</p>
+<p>Termini implement the indirector actions.</p>
+<p>This allows multiple implementations for the same action:</p>
+<pre class='code'>
+# find ./lib/puppet/indirector/facts/
+./lib/puppet/indirector/facts/inventory_active_record.rb
+./lib/puppet/indirector/facts/rest.rb
+./lib/puppet/indirector/facts/facter.rb
+./lib/puppet/indirector/facts/yaml.rb
+./lib/puppet/indirector/facts/memory.rb
+./lib/puppet/indirector/facts/couch.rb
+./lib/puppet/indirector/facts/active_record.rb
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Auth.conf</h2>
+<p>This config file manages remote access to indirections/actions.</p>
+<pre class='code'>
+path /facts
+auth any
+method save
+allow *
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Configuring termini:</h2>
+<p>Currently, only a subset of the termini are configurable:</p>
+<pre class='code'>
+# puppet master --configprint all | grep terminus
+catalog_terminus = compiler
+facts_terminus = yaml
+node_terminus = plain
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Catalog terminus example:</h2>
+<p>As an example, we can write a catalog terminus that uses cached catalogs until <code>HEAD</code> changes.</p>
+<pre class='code'>
+## lib/puppet/indirector/catalog/caching_compiler.rb
+
+require 'puppet/indirector/catalog/compiler'
+
+class Puppet::Resource::Catalog::CachingCompiler &lt;
+  Puppet::Resource::Catalog::Compiler
+
+  @commit, @cache = `git rev-parse HEAD`.chomp, {}
+
+  def self.cache
+    commit = `git rev-parse HEAD`.chomp
+    @commit, @cache = commit, {} if @commit != commit
+    @cache
+  end
+
+  def find(request)
+    self.class.cache[request.key] ||= super
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Get facts via http:</h2>
+<ul>
+	<li>start a puppetmaster</li>
+	<li>ensure that an agent has a signed certificate</li>
+	<li>ensure that the agent is authorized to access facts</li>
+	<li>use curl in order to interact with the indirector</li>
+</ul>
+<pre class='code'>
+export CERT='/var/lib/puppet/ssl/certs/mynode.pem';
+export CACERT='/var/lib/puppet/ssl/certs/ca.pem';
+export PRVKEY='/var/lib/puppet/ssl/private_keys/mynode.pem';
+export CERT_OPTIONS="--cert ${CERT} --cacert ${CACERT} --key ${PRVKEY}";
+curl -X GET -H "Accept: yaml" ${CERT_OPTIONS} https://mypuppetmaster:8140/production/facts/mynode;
+</pre>
+<p>or we could use <code>Faces</code> (2.7.0 or higher)</p>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Introducing Faces</h2>
+<p>Making remote calls with Faces is easy:</p>
+<pre class='code'>
+puppet facts find mynode --terminus rest --server mypuppetmaster
+</pre>
+<p>Faces now exist for all indirectors</p>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Faces</h2>
+<p>Faces is a Ruby DSL for creating command line tools that integrate easily with Puppet.</p>
+<p>We are using Faces to publish APIs to Puppet.</p>
+<ul>
+	<li>has access to puppet&#8217;s configuration options.
+	<ul>
+		<li>knows where to find certs, how to contact master</li>
+	</ul></li>
+	<li>designed to interact with Puppet subsystems</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Creating Faces</h2>
+<pre class='code'>
+require 'puppet/face'
+Puppet::Face.define(:configurer, '0.0.1') do
+  action(:synchronize) do
+    when_invoked do |certname, options|
+      facts = Puppet::Face[:facts, '0.0.1'].find(certname)
+      catalog = Puppet::Face[:catalog, '0.0.1'].download(certname, facts)
+      report = Puppet::Face[:catalog, '0.0.1'].apply(catalog)
+      report
+    end
+  end
+end
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Indirection</h1><h2>Routes</h2>
+<p>In the future (2.7.x), all of the termini will be configurable as routes:</p>
+<pre class='code'>
+# /etc/puppet/routes.yaml
+agent: 
+  facts: 
+    cache: rest
+    terminus: facter
+  catalog: 
+    cache: yaml
+    terminus: rest
+master: 
+  facts: 
+    terminus: yaml
+  catalog: 
+    cache: active_record
+    terminus: compiler
+</pre>
+
+</div>
+<div class='slide '>
+<h1>Puppet Developers Course</h1><h3>What we covered:</h3>
+<ul>
+	<li>An introduction (or refresher) to the Ruby programming language</li>
+	<li>An expanded look at developing your own facts</li>
+	<li>An expanded look at developing your own functions</li>
+	<li>Writing unit tests using rspec</li>
+	<li>Writing custom report handlers</li>
+	<li>Puppet Ruby DSL</li>
+	<li>Developing types and providers</li>
+	<li>The indirector</li>
+	<li>Puppet Faces</li>
+</ul>
+
+</div>
+<div class='slide '>
+<h1>Puppet Developers Course</h1><div style="text-align: center;">
+<p><br/>
+<img src="images/puppetlabs.png" /></p>
+</div></div>
+
+
+  </div> <!-- presentation -->
+</body>
+</html> 
+

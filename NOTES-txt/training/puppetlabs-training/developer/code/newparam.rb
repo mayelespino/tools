@@ -1,0 +1,6 @@
+Puppet::Type.newtype(:media) do
+  # ...
+  newparam(:path) do
+    # ...
+  end
+end
