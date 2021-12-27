@@ -33,7 +33,7 @@ S = BeautifulSoup(index, 'lxml')
 
 for tag in S.find_all('a'):
 	print(f'{tag.text} * {(tag.attrs)["href"]}')
-	c.execute(''' INSERT INTO bookmarks (title, url, tags) VALUES(?, ?, ?) ''', (tag.text, (tag.attrs)["href"], "")) 
+	c.execute(''' INSERT OR REPLACE INTO bookmarks (title, url, tags) VALUES(?, ?, ?) ''', (tag.text, (tag.attrs)["href"], "")) 
 	conn.commit()
 
 

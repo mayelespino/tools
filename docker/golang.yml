@@ -1,3 +1,7 @@
 FROM golang
-RUN apt-get update && apt-get install apt-file -y && apt-file update && apt-get install vim -y
-RUN cd /go/src/ && git clone https://github.com/mayelespino/code.git
+RUN ["apt-get", "update"]
+RUN ["apt-get", "install","apt-file", "-y"]
+RUN ["apt-file", "update"] 
+RUN ["apt-get", "install", "vim", "-y"]
+RUN ["cd", "/go/src/" ] 
+RUN ["git", "clone", "https://github.com/mayelespino/code.git"]
