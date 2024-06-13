@@ -1,5 +1,5 @@
 #!/bin/sh
-sudo docker run -d -it --name golang --mount type=bind,source="/home/mayel/GIT",target=/home rust:latest
+sudo docker run -d -it --name golang --mount type=bind,source="/home/mayel/GIT",target=/home golang:latest
 
 echo "Now running:"
 sudo docker ps

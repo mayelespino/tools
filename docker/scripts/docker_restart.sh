@@ -6,5 +6,4 @@ then
     sudo docker ps
     exit 0
 fi
-sudo docker stop -f "$1"
-sudo docker rm "$1"
+sudo docker restart "$1"

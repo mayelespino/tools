@@ -41,6 +41,7 @@ services:
 
 To run a shell: ''' docker exec -it ubuntu_bash bash'''
 
+[jenkins with docker compose](https://www.cloudbees.com/blog/how-to-install-and-run-jenkins-with-docker-compose)
 
 # Links
 
