@@ -1,0 +1,8 @@
+#!/bin/sh
+
+alias bat='batcat '
+alias C='batcat '
+alias L='eza --long --tree --level=3'
+
+eval "$(zoxide init bash)"
+eval "$(fzf --bash)"
