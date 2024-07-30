@@ -30,4 +30,20 @@ sudo apt update
 sudo apt install -y eza
 #
 #
+sudo apt install samba
+mkdir ~/sambashare/
+#
+#sudo nano /etc/samba/smb.conf
+#
+#At the bottom of the file, add the following lines:
+#
+#[sambashare]
+#    comment = Samba on Ubuntu
+#    path = /home/username/sambashare
+#    read only = no
+#    browsable = yes
+#
+#sudo service smbd restart
+#sudo ufw allow samba
+	
 #
