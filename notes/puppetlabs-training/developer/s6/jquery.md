@@ -1,3 +1,8 @@
+# XSS in jQuery as used in Drupal, Backdrop CMS, and other products 
+
+Upgrade jquery to version 3.4.0 or later.
+
+```
 /*!
  * jQuery JavaScript Library v1.3.1
  * http://jquery.com/
@@ -8,6 +13,7 @@
  *
  * Date: 2009-01-21 20:42:16 -0500 (Wed, 21 Jan 2009)
  * Revision: 6158
+ */
 
 
 (function(){
@@ -4240,5 +4246,4 @@ jQuery.each([ "Height", "Width" ], function(i, name){
 	};
 
 });})();
-
-*/
+```
