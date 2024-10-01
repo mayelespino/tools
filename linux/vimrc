@@ -61,3 +61,24 @@ export PATH
 PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
 export PATH
 
+#"
+#set guifont=courier_new:h20
+#
+#" => Text, tab and indent related
+#set expandtab
+#set shiftwidth=4
+#set tabstop=4
+#set smarttab
+# 
+#set lbr
+#set tw=500
+# 
+#set ai "Auto indent
+#set si "Smart indet
+#set wrap "Wrap lines
+#" No sound on errors
+#set noerrorbells
+#set novisualbell
+#set t_vb=
+#set tm=500
+
