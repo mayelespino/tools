@@ -1,5 +1,7 @@
 # List of containers I have installed and used
 
+## Ollama
+
 https://hub.docker.com/r/ollama/ollama
 
 To run (CPU only):
@@ -13,6 +15,9 @@ Run model locally
 ```
 docker exec -it ollama ollama run llama3
 ```
+
+https://github.com/ollama/ollama
+
 
 ----
 # Repos and links
