@@ -1,0 +1,72 @@
+---
+- name: Setup Kubernetes Master Node
+  hosts: k8s-master
+  become: yes
+  vars:
+    pod_network_cidr: "10.244.0.0/16"
+
+  tasks:
+
+    - name: Ensure kubeadm is installed via Snap
+      ansible.builtin.command:
+        cmd: snap install kubeadm --classic
+      args:
+        creates: /snap/bin/kubeadm
+
+    - name: Ensure kubelet service directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/system/kubelet.service.d
+        state: directory
+
+    - name: Enable IP forwarding
+      ansible.builtin.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+        reload: yes
+
+    - name: Enable kubelet service
+      ansible.builtin.systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+        daemon_reload: yes
+      ignore_errors: yes  # kubelet may not start yet
+
+    - name: Initialize kubeadm
+      ansible.builtin.command:
+        cmd: kubeadm init --pod-network-cidr={{ pod_network_cidr }} --ignore-preflight-errors=Service-Kubelet
+      register: kubeadm_init
+      ignore_errors: yes
+
+    - name: Create kubeconfig directory for user
+      ansible.builtin.file:
+        path: /home/{{ ansible_user }}/.kube
+        state: directory
+        mode: 0755
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy admin kubeconfig to user home
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/{{ ansible_user }}/.kube/config
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0644
+
+    - name: Save kubeadm join command to a file
+      ansible.builtin.command:
+        cmd: kubeadm token create --print-join-command
+      register: kubeadm_join
+      changed_when: false
+
+    - name: Write kubeadm join command to file
+      ansible.builtin.copy:
+        content: "{{ kubeadm_join.stdout }}"
+        dest: /home/{{ ansible_user }}/kubeadm_join.sh
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0755
+
